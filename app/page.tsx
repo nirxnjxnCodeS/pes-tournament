@@ -1,10 +1,13 @@
 import { getSupabaseServer } from '@/lib/supabase-server'
 import { isAdminSession } from '@/actions/auth'
 import { computeStandings } from '@/lib/standings'
+import { computeAwards } from '@/lib/awards'
 import { buildBracket } from '@/lib/bracket'
 import type { BracketSeeding, Match, Player } from '@/types'
 import { StageHero } from './home/StageHero'
 import { TopThreeCards } from './home/TopThreeCards'
+import { LiveAwardsStrip } from './home/LiveAwardsStrip'
+import { MatchdayProgress } from './home/MatchdayProgress'
 import { RecentResults } from './home/RecentResults'
 import { UpcomingFixtures } from './home/UpcomingFixtures'
 
@@ -29,6 +32,7 @@ export default async function HomePage() {
   const playerMap     = new Map(playerList.map((p) => [p.id, p]))
   const leagueMatches = matchList.filter((m) => m.stage === 'league')
   const standings     = computeStandings(playerList, leagueMatches)
+  const awards        = computeAwards(playerList, matchList, standings)
 
   const played = leagueMatches.filter((m) => m.status === 'played' || m.status === 'walkover')
   const matchdayNumber = played.length > 0
@@ -56,6 +60,8 @@ export default async function HomePage() {
         isAdmin={isAdmin}
       />
 
+      {stage === 'league' && <LiveAwardsStrip awards={awards} />}
+      {stage === 'league' && <MatchdayProgress playedCount={played.length} />}
       {stage === 'league' && <TopThreeCards standings={standings} />}
 
       <RecentResults matches={recent} playerMap={playerMap} />

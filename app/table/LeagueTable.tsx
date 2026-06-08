@@ -43,7 +43,8 @@ export function LeagueTable({ standings, allMatches }: LeagueTableProps) {
               {['P','W','D','L','GF','GA','GD','PTS'].map((h) => (
                 <th key={h} className="py-2.5 px-2 text-right w-8 tabular-nums">{h}</th>
               ))}
-              <th className="py-2.5 pl-2 pr-4 text-left">Form</th>
+              <th className="py-2.5 pl-2 pr-2 text-left">Form</th>
+              <th className="w-12" />
             </tr>
           </thead>
           <tbody>

@@ -67,8 +67,18 @@ export function TableRow({ standing: s, isFirstNonQualified, onClick }: TableRow
       </td>
 
       {/* Form */}
-      <td className="py-2.5 pl-2 pr-4 w-20">
+      <td className="py-2.5 pl-2 pr-2 w-20">
         <FormStrip form={s.form} />
+      </td>
+
+      {/* Stats cue */}
+      <td className="py-2.5 pl-1 pr-3 w-12">
+        <div className="flex items-center justify-end gap-1 text-text-muted group-hover:text-text transition-colors">
+          <span className="hidden md:block text-xs">Stats</span>
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+            <path d="M5 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
       </td>
     </tr>
   )

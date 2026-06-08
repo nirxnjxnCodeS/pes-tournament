@@ -35,7 +35,7 @@ export default async function FixturesPage() {
   return (
     <div className="px-4 py-6 max-w-2xl mx-auto flex flex-col gap-4">
       <h1 className="text-lg font-semibold text-text">Fixtures</h1>
-      <FixtureList matches={matches} isAdmin={isAdmin} />
+      <FixtureList matches={matches} players={players ?? []} isAdmin={isAdmin} />
     </div>
   )
 }

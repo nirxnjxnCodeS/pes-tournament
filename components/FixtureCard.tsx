@@ -9,15 +9,41 @@ interface FixtureCardProps {
   onAdminClick?: () => void
 }
 
+type ResultTag = 'W' | 'D' | 'L'
+
+const tagStyles: Record<ResultTag, string> = {
+  W: 'bg-win/15 text-win',
+  D: 'bg-draw/15 text-draw',
+  L: 'bg-loss/15 text-loss',
+}
+
+function ResultPill({ result }: { result: ResultTag }) {
+  return (
+    <span className={`shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${tagStyles[result]}`}>
+      {result}
+    </span>
+  )
+}
+
+function getResults(match: Match, playerA: Player, playerB: Player): [ResultTag | null, ResultTag | null] {
+  if (match.status === 'played' && match.score_a != null && match.score_b != null) {
+    if (match.score_a > match.score_b) return ['W', 'L']
+    if (match.score_b > match.score_a) return ['L', 'W']
+    return ['D', 'D']
+  }
+  if (match.status === 'walkover') {
+    const aWon = match.walkover_winner === playerA.id
+    return aWon ? ['W', 'L'] : ['L', 'W']
+  }
+  return [null, null]
+}
+
 export function FixtureCard({ match, playerA, playerB, compact = false, onAdminClick }: FixtureCardProps) {
   const isPlayed   = match.status === 'played'
   const isWalkover = match.status === 'walkover'
   const isPending  = match.status === 'pending'
 
-  const winnerA = isPlayed && match.score_a != null && match.score_b != null && match.score_a > match.score_b
-  const winnerB = isPlayed && match.score_a != null && match.score_b != null && match.score_b > match.score_a
-  const walkoverWinnerA = isWalkover && match.walkover_winner === playerA.id
-  const walkoverWinnerB = isWalkover && match.walkover_winner === playerB.id
+  const [resultA, resultB] = getResults(match, playerA, playerB)
 
   const px = compact ? 'px-3 py-2' : 'px-4 py-3'
   const avatarSize = compact ? 'sm' as const : 'md' as const
@@ -30,10 +56,11 @@ export function FixtureCard({ match, playerA, playerB, compact = false, onAdminC
         <PlayerAvatar player={playerA} size={avatarSize} />
         <span className={[
           'truncate text-sm font-medium',
-          (winnerA || walkoverWinnerA) ? 'text-text' : isPending ? 'text-text-muted' : 'text-text-muted',
+          resultA === 'W' ? 'text-text' : isPending ? 'text-text-muted' : 'text-text-muted',
         ].join(' ')}>
           {playerA.name}
         </span>
+        {resultA && <ResultPill result={resultA} />}
       </div>
 
       {/* Score / vs */}
@@ -61,9 +88,10 @@ export function FixtureCard({ match, playerA, playerB, compact = false, onAdminC
 
       {/* Player B */}
       <div className="flex items-center gap-2 flex-1 min-w-0 justify-end">
+        {resultB && <ResultPill result={resultB} />}
         <span className={[
           'truncate text-sm font-medium text-right',
-          (winnerB || walkoverWinnerB) ? 'text-text' : isPending ? 'text-text-muted' : 'text-text-muted',
+          resultB === 'W' ? 'text-text' : isPending ? 'text-text-muted' : 'text-text-muted',
         ].join(' ')}>
           {playerB.name}
         </span>

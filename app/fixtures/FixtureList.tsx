@@ -5,19 +5,22 @@ import type { Match, Player } from '@/types'
 import { useRealtimeMatches } from '@/hooks/useRealtimeMatches'
 import { FixtureCard } from '@/components/FixtureCard'
 import { ScoreEntryModal } from '@/app/admin/(protected)/matches/ScoreEntryModal'
+import { PlayerFilterChips } from './PlayerFilterChips'
 
 type FilterTab = 'all' | 'played' | 'pending' | 'walkover'
 type FullMatch = Match & { player_a_data: Player; player_b_data: Player }
 
 interface FixtureListProps {
   matches: Match[]
+  players: Player[]
   isAdmin: boolean
 }
 
-export function FixtureList({ matches: rawMatches, isAdmin }: FixtureListProps) {
+export function FixtureList({ matches: rawMatches, players, isAdmin }: FixtureListProps) {
   useRealtimeMatches('fixtures-realtime')
   const [filter, setFilter]         = useState<FilterTab>('all')
   const [search, setSearch]         = useState('')
+  const [playerId, setPlayerId]     = useState<string | null>(null)
   const [adminMatch, setAdminMatch] = useState<FullMatch | null>(null)
 
   const matches = rawMatches as FullMatch[]
@@ -26,6 +29,7 @@ export function FixtureList({ matches: rawMatches, isAdmin }: FixtureListProps) 
     const q = search.toLowerCase()
     return matches.filter((m) => {
       if (filter !== 'all' && m.status !== filter) return false
+      if (playerId && m.player_a !== playerId && m.player_b !== playerId) return false
       if (q) {
         const aName = m.player_a_data?.name.toLowerCase() ?? ''
         const bName = m.player_b_data?.name.toLowerCase() ?? ''
@@ -33,7 +37,7 @@ export function FixtureList({ matches: rawMatches, isAdmin }: FixtureListProps) 
       }
       return true
     })
-  }, [matches, filter, search])
+  }, [matches, filter, playerId, search])
 
   const counts = useMemo(() => ({
     all:      matches.length,
@@ -51,7 +55,14 @@ export function FixtureList({ matches: rawMatches, isAdmin }: FixtureListProps) 
 
   return (
     <>
-      {/* Filter tabs */}
+      {/* Player chips */}
+      <PlayerFilterChips
+        players={players}
+        activeId={playerId}
+        onChange={setPlayerId}
+      />
+
+      {/* Status filter tabs */}
       <div className="flex gap-1 overflow-x-auto pb-1">
         {TABS.map(({ id, label }) => (
           <button
