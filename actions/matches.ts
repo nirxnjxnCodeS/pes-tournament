@@ -109,6 +109,37 @@ export async function revertWalkoverToScore(
   return enterScore(_prev, formData)
 }
 
+export async function resetMatch(matchId: string): Promise<{ error?: string }> {
+  await requireAdmin()
+  const db = getSupabaseAdmin()
+
+  const { data: match, error: fetchError } = await db
+    .from('matches')
+    .select('status')
+    .eq('id', matchId)
+    .single()
+  if (fetchError || !match) return { error: 'Match not found' }
+  if (match.status !== 'played' && match.status !== 'walkover') {
+    return { error: 'Only played or walkover matches can be reset' }
+  }
+
+  const { error } = await db
+    .from('matches')
+    .update({
+      score_a: null,
+      score_b: null,
+      status: 'pending',
+      played_at: null,
+      walkover_winner: null,
+    })
+    .eq('id', matchId)
+
+  if (error) return { error: error.message }
+
+  revalidateAll()
+  return {}
+}
+
 // ── Knockout match creation ───────────────────────────────────────────
 // Internal helper — only called from advanceToKnockouts which guards with requireAdmin
 export async function createKnockoutMatch(

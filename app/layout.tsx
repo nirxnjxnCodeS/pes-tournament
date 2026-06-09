@@ -21,8 +21,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="bg-bg text-text antialiased">
         <div className="flex min-h-dvh">
           <Navigation isAdmin={isAdmin} />
-          {/* pb-20 accommodates mobile bottom nav; md:pb-0 resets on desktop */}
-          <main className="flex-1 min-w-0 pb-20 md:pb-0">
+          {/* pt-12 accommodates mobile top header; pb-20 for mobile bottom nav */}
+          <main className="flex-1 min-w-0 pt-12 md:pt-0 pb-20 md:pb-0">
             {children}
           </main>
         </div>

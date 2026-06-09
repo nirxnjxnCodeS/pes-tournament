@@ -6,6 +6,7 @@ import { PlayerAvatar } from '@/components/ui/PlayerAvatar'
 import { Button } from '@/components/ui/Button'
 import { ScoreEntryModal } from './ScoreEntryModal'
 import { WalkoverModal } from './WalkoverModal'
+import { ResetMatchModal } from './ResetMatchModal'
 
 type FilterTab = 'all' | 'pending' | 'played' | 'walkover'
 
@@ -17,8 +18,9 @@ interface MatchAdminListProps {
 
 export function MatchAdminList({ matches: rawMatches }: MatchAdminListProps) {
   const [filter, setFilter]         = useState<FilterTab>('all')
-  const [scoreMatch, setScoreMatch] = useState<FullMatch | null>(null)
-  const [woMatch, setWoMatch]       = useState<FullMatch | null>(null)
+  const [scoreMatch, setScoreMatch]   = useState<FullMatch | null>(null)
+  const [woMatch, setWoMatch]         = useState<FullMatch | null>(null)
+  const [resetMatch, setResetMatch]   = useState<FullMatch | null>(null)
 
   const matches = rawMatches as FullMatch[]
 
@@ -78,6 +80,7 @@ export function MatchAdminList({ matches: rawMatches }: MatchAdminListProps) {
               match={m}
               onEnterScore={() => setScoreMatch(m)}
               onWalkover={() => setWoMatch(m)}
+              onReset={() => setResetMatch(m)}
             />
           ))}
         </div>
@@ -89,6 +92,9 @@ export function MatchAdminList({ matches: rawMatches }: MatchAdminListProps) {
       {woMatch && (
         <WalkoverModal match={woMatch} onClose={() => setWoMatch(null)} />
       )}
+      {resetMatch && (
+        <ResetMatchModal match={resetMatch} onClose={() => setResetMatch(null)} />
+      )}
     </>
   )
 }
@@ -97,10 +103,12 @@ function MatchAdminRow({
   match,
   onEnterScore,
   onWalkover,
+  onReset,
 }: {
   match: FullMatch
   onEnterScore: () => void
   onWalkover: () => void
+  onReset: () => void
 }) {
   const stageLabel: Record<string, string> = {
     league: 'League', sf1: 'SF1', sf2: 'SF2', final: 'Final',
@@ -142,6 +150,27 @@ function MatchAdminRow({
         {match.status !== 'walkover' && (
           <Button size="sm" variant="ghost" onClick={onWalkover}>
             Walkover
+          </Button>
+        )}
+        {(match.status === 'played' || match.status === 'walkover') && (
+          <Button size="sm" variant="ghost" onClick={onReset} aria-label="Reset match">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+              <path
+                d="M2 7a5 5 0 1 0 1.5-3.54"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M2 3v3.5H5.5"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+            Reset
           </Button>
         )}
       </div>

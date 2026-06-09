@@ -32,8 +32,26 @@ export function StageHero({ stage, matchdayNumber, standings, bracket, isAdmin }
   if (stage === 'league') {
     return (
       <div className="bg-surface border border-border rounded-card px-5 py-5">
-        <p className="text-xs font-semibold text-text-faint uppercase tracking-wider">League Phase</p>
-        <p className="text-lg font-bold text-text mt-0.5">Matchday {matchdayNumber}</p>
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-text-faint uppercase tracking-wider">League Phase</p>
+            <p className="text-lg font-bold text-text mt-0.5">Matchday {matchdayNumber}</p>
+          </div>
+          <a
+            href="/share"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-text-muted border border-transparent hover:bg-surface-raised hover:text-text rounded-lg px-2.5 py-1.5 transition-colors shrink-0"
+          >
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+              <circle cx="11" cy="2.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/>
+              <circle cx="11" cy="11.5" r="1.5" stroke="currentColor" strokeWidth="1.3"/>
+              <circle cx="3" cy="7" r="1.5" stroke="currentColor" strokeWidth="1.3"/>
+              <path d="M4.4 6.15l5.1-3M4.4 7.85l5.1 3" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+            Share
+          </a>
+        </div>
         <div className="flex items-center gap-3 mt-3">
           {standings.slice(0, 3).map((s, i) => (
             <div key={s.player.id} className="flex items-center gap-1.5">

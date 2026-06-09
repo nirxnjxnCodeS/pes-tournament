@@ -53,6 +53,25 @@ export function FixtureList({ matches: rawMatches, players, isAdmin }: FixtureLi
     { id: 'walkover', label: `Walkover (${counts.walkover})` },
   ]
 
+  // Matchday grouping: only active when no filters are applied
+  const isGrouped = filter === 'all' && !playerId && !search
+
+  const groupedByMatchday = useMemo(() => {
+    if (!isGrouped) return null
+    const map = new Map<number, FullMatch[]>()
+    for (const m of filtered) {
+      const day = m.matchday_number ?? -1
+      if (!map.has(day)) map.set(day, [])
+      map.get(day)!.push(m)
+    }
+    // Numbered matchdays ascending; -1 (no matchday, e.g. knockout) at the end
+    return Array.from(map.entries()).sort(([a], [b]) => {
+      if (a === -1) return 1
+      if (b === -1) return -1
+      return a - b
+    })
+  }, [filtered, isGrouped])
+
   return (
     <>
       {/* Player chips */}
@@ -90,6 +109,38 @@ export function FixtureList({ matches: rawMatches, players, isAdmin }: FixtureLi
       {/* Fixture list */}
       {filtered.length === 0 ? (
         <p className="text-sm text-text-faint text-center py-12">No matches found</p>
+      ) : isGrouped && groupedByMatchday ? (
+        <div className="flex flex-col gap-4">
+          {groupedByMatchday.map(([day, group]) => {
+            const doneCt = group.filter((m) => m.status !== 'pending').length
+            return (
+              <div key={day} className="flex flex-col gap-2">
+                {/* Matchday header */}
+                {day > 0 && (
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold uppercase tracking-widest text-text-muted whitespace-nowrap">
+                      Matchday {day}
+                      <span className="text-text-faint"> · {doneCt}/{group.length}</span>
+                    </span>
+                    <div className="flex-1 h-px bg-border" />
+                  </div>
+                )}
+                {group.map((m) => {
+                  if (!m.player_a_data || !m.player_b_data) return null
+                  return (
+                    <FixtureCard
+                      key={m.id}
+                      match={m}
+                      playerA={m.player_a_data}
+                      playerB={m.player_b_data}
+                      onAdminClick={isAdmin ? () => setAdminMatch(m) : undefined}
+                    />
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
       ) : (
         <div className="flex flex-col gap-2">
           {filtered.map((m) => {

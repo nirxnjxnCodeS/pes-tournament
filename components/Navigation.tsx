@@ -83,11 +83,21 @@ interface NavigationProps {
   isAdmin: boolean
 }
 
+function LogoLockup({ size }: { size: 'base' | 'lg' }) {
+  return (
+    <span className={size === 'lg' ? 'text-lg' : 'text-base'}>
+      🏆{' '}
+      <span className="font-bold text-accent">PES</span>
+      <span className="font-normal text-text-muted"> Tournament</span>
+    </span>
+  )
+}
+
 export function Navigation({ isAdmin }: NavigationProps) {
   const pathname = usePathname()
 
-  // Don't render public nav on admin routes
-  if (pathname.startsWith('/admin')) return null
+  // Don't render public nav on admin or share routes
+  if (pathname.startsWith('/admin') || pathname.startsWith('/share')) return null
 
   function isActive(href: string) {
     if (href === '/') return pathname === '/'
@@ -99,7 +109,7 @@ export function Navigation({ isAdmin }: NavigationProps) {
       {/* Desktop sidebar */}
       <aside className="hidden md:flex fixed top-0 left-0 bottom-0 w-52 flex-col bg-surface border-r border-border z-30">
         <div className="px-5 py-5 border-b border-border shrink-0">
-          <span className="text-sm font-bold text-accent tracking-wide">PES Tournament</span>
+          <LogoLockup size="lg" />
         </div>
 
         <nav className="flex-1 px-2 py-3 flex flex-col gap-0.5 overflow-y-auto">
@@ -137,8 +147,13 @@ export function Navigation({ isAdmin }: NavigationProps) {
         )}
       </aside>
 
-      {/* Desktop spacer to push content right */}
+      {/* Desktop spacer */}
       <div className="hidden md:block w-52 shrink-0" />
+
+      {/* Mobile top header */}
+      <header className="md:hidden fixed top-0 left-0 right-0 z-30 bg-surface border-b border-border h-12 flex items-center px-4">
+        <LogoLockup size="base" />
+      </header>
 
       {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-30 bg-surface border-t border-border flex">

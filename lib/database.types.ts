@@ -60,6 +60,7 @@ export type Database = {
           walkover_winner: string | null
           played_at: string | null
           created_at: string
+          matchday_number: number | null
         }
         Insert: {
           id?: string
@@ -72,6 +73,7 @@ export type Database = {
           walkover_winner?: string | null
           played_at?: string | null
           created_at?: string
+          matchday_number?: number | null
         }
         Update: {
           id?: string
@@ -84,6 +86,7 @@ export type Database = {
           walkover_winner?: string | null
           played_at?: string | null
           created_at?: string
+          matchday_number?: number | null
         }
         Relationships: []
       }

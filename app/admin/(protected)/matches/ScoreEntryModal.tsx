@@ -16,7 +16,7 @@ interface ScoreEntryModalProps {
 
 export function ScoreEntryModal({ match, onClose }: ScoreEntryModalProps) {
   const router = useRouter()
-  const isRevert  = match.status === 'walkover'
+  const isRevert   = match.status === 'walkover'
   const isKnockout = match.stage !== 'league'
   const action     = isRevert ? revertWalkoverToScore : enterScore
 
@@ -27,8 +27,10 @@ export function ScoreEntryModal({ match, onClose }: ScoreEntryModalProps) {
   const [pendingA, setPendingA]     = useState<number | null>(null)
   const [pendingB, setPendingB]     = useState<number | null>(null)
 
-  // Ref to the hidden form used to submit when confirmed
-  const formRef = useRef<HTMLFormElement>(null)
+  // Refs for the hidden submit form and the score inputs
+  const formRef   = useRef<HTMLFormElement>(null)
+  const scoreARef = useRef<HTMLInputElement>(null)
+  const scoreBRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     if (state !== null && !state?.error) {
@@ -58,6 +60,19 @@ export function ScoreEntryModal({ match, onClose }: ScoreEntryModalProps) {
   const isDraw = pendingA === pendingB
   const knockoutDrawError = isKnockout && isDraw && pendingA !== null
 
+  // Enter key on confirmation screen triggers confirm
+  useEffect(() => {
+    if (!confirming || isPending) return
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' && !knockoutDrawError) {
+        e.preventDefault()
+        formRef.current?.requestSubmit()
+      }
+    }
+    document.addEventListener('keydown', handler)
+    return () => document.removeEventListener('keydown', handler)
+  }, [confirming, isPending, knockoutDrawError])
+
   // ── Input screen ────────────────────────────────────────────────────
   if (!confirming) {
     return (
@@ -70,14 +85,23 @@ export function ScoreEntryModal({ match, onClose }: ScoreEntryModalProps) {
               <PlayerAvatar player={match.player_a_data} size="md" showRing />
               <span className="text-xs text-text-muted text-center leading-tight">{match.player_a_data.name}</span>
               <input
+                ref={scoreARef}
                 type="number"
                 name="score_a"
                 min={0}
                 max={20}
                 defaultValue={pendingA !== null ? String(pendingA) : String(defaultA)}
                 required
+                autoFocus
                 className="w-16 text-center text-xl font-bold bg-surface-raised border border-border rounded-lg px-2 py-2 text-text focus:outline-none focus:border-accent tabular-nums"
                 aria-label={`Score for ${match.player_a_data.name}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === 'Tab') {
+                    e.preventDefault()
+                    scoreBRef.current?.focus()
+                    scoreBRef.current?.select()
+                  }
+                }}
               />
             </div>
 
@@ -88,6 +112,7 @@ export function ScoreEntryModal({ match, onClose }: ScoreEntryModalProps) {
               <PlayerAvatar player={match.player_b_data} size="md" showRing />
               <span className="text-xs text-text-muted text-center leading-tight">{match.player_b_data.name}</span>
               <input
+                ref={scoreBRef}
                 type="number"
                 name="score_b"
                 min={0}
@@ -96,6 +121,12 @@ export function ScoreEntryModal({ match, onClose }: ScoreEntryModalProps) {
                 required
                 className="w-16 text-center text-xl font-bold bg-surface-raised border border-border rounded-lg px-2 py-2 text-text focus:outline-none focus:border-accent tabular-nums"
                 aria-label={`Score for ${match.player_b_data.name}`}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    e.currentTarget.form?.requestSubmit()
+                  }
+                }}
               />
             </div>
           </div>
@@ -120,8 +151,9 @@ export function ScoreEntryModal({ match, onClose }: ScoreEntryModalProps) {
   }
 
   // ── Confirmation screen ─────────────────────────────────────────────
+  // Escape goes back to input screen instead of closing
   return (
-    <Modal open onClose={onClose} title={title} persistent={isPending}>
+    <Modal open onClose={() => setConfirming(false)} title={title} persistent={isPending}>
       {/* Hidden form that actually submits to the server action */}
       <form ref={formRef} action={formAction} className="hidden" aria-hidden>
         <input type="hidden" name="id"      value={match.id} />

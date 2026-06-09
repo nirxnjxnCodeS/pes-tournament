@@ -21,6 +21,7 @@ export interface Match {
   walkover_winner: string | null
   played_at: string | null
   created_at: string
+  matchday_number: number | null
   // joined
   player_a_data?: Player
   player_b_data?: Player
