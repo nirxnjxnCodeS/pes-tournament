@@ -38,6 +38,7 @@ export interface Standing {
   goal_difference: number
   points: number
   form: ('W' | 'D' | 'L')[]  // last 5, newest right
+  streak: { type: 'W' | 'D' | 'L' | null; count: number }
   position: number
   qualified: boolean  // top 4
   tied: boolean       // flagged if tiebreaker needed

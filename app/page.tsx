@@ -10,6 +10,7 @@ import { LiveAwardsStrip } from './home/LiveAwardsStrip'
 import { MatchdayProgress } from './home/MatchdayProgress'
 import { RecentResults } from './home/RecentResults'
 import { UpcomingFixtures } from './home/UpcomingFixtures'
+import { MyPositionBanner } from './home/MyPositionBanner'
 
 export const metadata = { title: 'Home' }
 
@@ -60,6 +61,9 @@ export default async function HomePage() {
         isAdmin={isAdmin}
       />
 
+      {stage === 'league' && (
+        <MyPositionBanner standings={standings} players={playerList} allMatches={matchList} />
+      )}
       {stage === 'league' && <LiveAwardsStrip awards={awards} />}
       {stage === 'league' && <MatchdayProgress playedCount={played.length} />}
       {stage === 'league' && <TopThreeCards standings={standings} />}

@@ -2,8 +2,19 @@ import type { Match, Player, Standing } from '@/types'
 
 type FormResult = 'W' | 'D' | 'L'
 
+export function getStreak(form: FormResult[]): { type: FormResult | null; count: number } {
+  if (form.length === 0) return { type: null, count: 0 }
+  const last = form[form.length - 1]
+  let count = 1
+  for (let i = form.length - 2; i >= 0; i--) {
+    if (form[i] === last) count++
+    else break
+  }
+  return { type: last, count }
+}
+
 export function computeStandings(players: Player[], matches: Match[]): Standing[] {
-  const map = new Map<string, Omit<Standing, 'position' | 'qualified' | 'tied' | 'form'> & { formMatches: { played_at: string | null; result: FormResult }[] }>()
+  const map = new Map<string, Omit<Standing, 'position' | 'qualified' | 'tied' | 'form' | 'streak'> & { formMatches: { played_at: string | null; result: FormResult }[] }>()
 
   for (const p of players) {
     map.set(p.id, {
@@ -30,7 +41,6 @@ export function computeStandings(players: Player[], matches: Match[]): Standing[
 
     if (m.status === 'walkover') {
       const winnerId = m.walkover_winner
-      // winner: 3-0, clean sheet; loser: 0-3, no clean sheet
       const aWon = winnerId === m.player_a
       const goalsForA     = aWon ? 3 : 0
       const goalsAgainstA = aWon ? 0 : 3
@@ -56,7 +66,6 @@ export function computeStandings(players: Player[], matches: Match[]): Standing[
       b.formMatches.push({ played_at: m.played_at, result: aWon ? 'L' : 'W' })
 
     } else {
-      // status === 'played'
       const sa = m.score_a!
       const sb = m.score_b!
 
@@ -84,21 +93,22 @@ export function computeStandings(players: Player[], matches: Match[]): Standing[
     }
   }
 
-  // Build raw standings array
   const rows = Array.from(map.values()).map((s) => {
     const gd = s.goals_for - s.goals_against
-    // Sort form chronologically by played_at (nulls last), take last 5, newest rightmost
     const sorted = [...s.formMatches].sort((x, y) => {
       if (!x.played_at && !y.played_at) return 0
       if (!x.played_at) return 1
       if (!y.played_at) return -1
       return x.played_at < y.played_at ? -1 : 1
     })
-    const form: FormResult[] = sorted.slice(-5).map((f) => f.result)
-    return { ...s, goal_difference: gd, form }
+    // form: last 5 for display (oldest → newest so newest is rightmost)
+    const allResults: FormResult[] = sorted.map((f) => f.result)
+    const form: FormResult[] = allResults.slice(-5)
+    // streak uses the full history so a 6-game win run isn't capped at 5
+    const streak = getStreak(allResults)
+    return { ...s, goal_difference: gd, form, streak }
   })
 
-  // Sort: points DESC → GD DESC → GF DESC → name ASC
   rows.sort((a, b) => {
     if (b.points !== a.points) return b.points - a.points
     if (b.goal_difference !== a.goal_difference) return b.goal_difference - a.goal_difference
@@ -106,7 +116,6 @@ export function computeStandings(players: Player[], matches: Match[]): Standing[
     return a.player.name.localeCompare(b.player.name)
   })
 
-  // Detect ties (adjacent rows identical on all three tiebreakers)
   const isTiedWith = (i: number, j: number) =>
     rows[i].points         === rows[j].points &&
     rows[i].goal_difference === rows[j].goal_difference &&
@@ -131,6 +140,7 @@ export function computeStandings(players: Player[], matches: Match[]): Standing[
     goal_difference:  s.goal_difference,
     points:           s.points,
     form:             s.form,
+    streak:           s.streak,
     position:         i + 1,
     qualified:        i < 4,
     tied:             tiedIndexes.has(i),

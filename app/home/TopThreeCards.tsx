@@ -6,6 +6,7 @@ interface TopThreeCardsProps {
 }
 
 const MEDALS = ['🥇', '🥈', '🥉']
+const STREAK_ICONS: Record<'W' | 'D' | 'L', string> = { W: '🔥', D: '〰️', L: '📉' }
 
 export function TopThreeCards({ standings }: TopThreeCardsProps) {
   const top3 = standings.slice(0, 3)
@@ -31,6 +32,14 @@ export function TopThreeCards({ standings }: TopThreeCardsProps) {
               <p className="text-[10px] text-text-faint tabular-nums">
                 {s.goal_difference > 0 ? '+' : ''}{s.goal_difference} GD
               </p>
+              {s.streak.type && s.streak.count >= 2 && (
+                <p className={[
+                  'text-[10px] font-semibold mt-0.5',
+                  s.streak.type === 'W' ? 'text-win' : s.streak.type === 'L' ? 'text-loss' : 'text-text-muted',
+                ].join(' ')}>
+                  {STREAK_ICONS[s.streak.type]} {s.streak.count}{s.streak.type}
+                </p>
+              )}
             </div>
           </div>
         ))}

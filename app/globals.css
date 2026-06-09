@@ -82,6 +82,25 @@
   }
 }
 
+/* ─── Light mode overrides ────────────────────────────────────────── */
+.light {
+  color-scheme: light;
+
+  --color-bg:               #F8F9FA;
+  --color-surface:          #FFFFFF;
+  --color-surface-raised:   #F1F3F5;
+  --color-surface-overlay:  #E9ECEF;
+
+  --color-border:           #E2E8F0;
+  --color-border-subtle:    #EDF2F7;
+
+  --color-text:             #1A1A2E;
+  --color-text-muted:       #4A5568;
+  --color-text-faint:       #718096;
+
+  /* accent, win, draw, loss, danger unchanged */
+}
+
 /* ─── Base ────────────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
