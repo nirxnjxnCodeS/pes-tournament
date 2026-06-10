@@ -6,6 +6,7 @@ import { useRealtimeMatches } from '@/hooks/useRealtimeMatches'
 import { FixtureCard } from '@/components/FixtureCard'
 import { ScoreEntryModal } from '@/app/admin/(protected)/matches/ScoreEntryModal'
 import { PlayerFilterChips } from './PlayerFilterChips'
+import { AnimatedList } from '@/components/AnimatedList'
 
 type FilterTab = 'all' | 'played' | 'pending' | 'walkover'
 type FullMatch = Match & { player_a_data: Player; player_b_data: Player }
@@ -142,7 +143,7 @@ export function FixtureList({ matches: rawMatches, players, isAdmin }: FixtureLi
           })}
         </div>
       ) : (
-        <div className="flex flex-col gap-2">
+        <AnimatedList className="flex flex-col gap-2" staggerMs={45}>
           {filtered.map((m) => {
             if (!m.player_a_data || !m.player_b_data) return null
             return (
@@ -155,7 +156,7 @@ export function FixtureList({ matches: rawMatches, players, isAdmin }: FixtureLi
               />
             )
           })}
-        </div>
+        </AnimatedList>
       )}
 
       {adminMatch && (

@@ -14,9 +14,11 @@ interface LeagueTableProps {
 
 export function LeagueTable({ standings, allMatches }: LeagueTableProps) {
   useRealtimeMatches('table-realtime')
-  const [selected, setSelected] = useState<Standing | null>(null)
+  const [selected, setSelected]   = useState<Standing | null>(null)
   const [directions, setDirections] = useState<Map<string, 'up' | 'down'>>(new Map())
+  const [scrolled, setScrolled]   = useState(false)
   const prevPositions = useRef<Map<string, number>>(new Map())
+  const containerRef  = useRef<HTMLDivElement>(null)
 
   const playerMap = new Map<string, Player>(
     standings.map((s) => [s.player.id, s.player]),
@@ -43,6 +45,15 @@ export function LeagueTable({ standings, allMatches }: LeagueTableProps) {
     return () => clearTimeout(t)
   }, [standings])
 
+  // Scroll-aware header border
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const handler = () => setScrolled(el.scrollTop > 0)
+    el.addEventListener('scroll', handler, { passive: true })
+    return () => el.removeEventListener('scroll', handler)
+  }, [])
+
   if (standings.length === 0) {
     return <p className="text-sm text-text-faint text-center py-12">No players yet</p>
   }
@@ -51,36 +62,42 @@ export function LeagueTable({ standings, allMatches }: LeagueTableProps) {
 
   return (
     <>
-      <div className="overflow-x-auto rounded-card border border-border">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-surface-raised border-b border-border text-[11px] font-semibold text-text-faint uppercase tracking-wide">
-              <th className="w-1" />
-              <th className="pr-3 py-2.5 text-right w-7">#</th>
-              <th className="py-2.5 pr-4 text-left">Player</th>
-              {['P','W','D','L','GF','GA','GD','PTS'].map((h) => (
-                <th key={h} className="py-2.5 px-2 text-right w-8 tabular-nums">{h}</th>
-              ))}
-              <th className="py-2.5 pl-2 pr-2 text-left">Form</th>
-              <th className="w-14" />
-              <th className="w-12" />
-            </tr>
-          </thead>
-          <tbody>
-            <AnimatePresence initial={false}>
-              {standings.map((s) => (
-                <TableRow
-                  key={s.player.id}
-                  standing={s}
-                  isFirstNonQualified={s.position === firstNonQualifiedPos}
-                  direction={directions.get(s.player.id) ?? null}
-                  onClick={() => setSelected(s)}
-                />
-              ))}
-            </AnimatePresence>
-          </tbody>
-        </table>
-      </div>
+      <div
+          ref={containerRef}
+          className="overflow-x-auto overflow-y-auto max-h-[70vh] md:max-h-none rounded-card border border-border"
+        >
+          <table className="w-full border-collapse text-sm">
+            <thead className="sticky top-0 z-10 bg-surface-raised">
+              <tr className={[
+                'text-[11px] font-semibold text-text-faint uppercase tracking-wide border-b transition-colors duration-150',
+                scrolled ? 'border-border' : 'border-transparent',
+              ].join(' ')}>
+                <th className="w-1" />
+                <th className="pr-3 py-2.5 text-right w-7">#</th>
+                <th className="py-2.5 pr-4 text-left">Player</th>
+                {['P','W','D','L','GF','GA','GD','PTS'].map((h) => (
+                  <th key={h} className="py-2.5 px-2 text-right w-8 tabular-nums">{h}</th>
+                ))}
+                <th className="py-2.5 pl-2 pr-2 text-left">Form</th>
+                <th className="w-14" />
+                <th className="w-12" />
+              </tr>
+            </thead>
+            <tbody>
+              <AnimatePresence initial={false}>
+                {standings.map((s) => (
+                  <TableRow
+                    key={s.player.id}
+                    standing={s}
+                    isFirstNonQualified={s.position === firstNonQualifiedPos}
+                    direction={directions.get(s.player.id) ?? null}
+                    onClick={() => setSelected(s)}
+                  />
+                ))}
+              </AnimatePresence>
+            </tbody>
+          </table>
+        </div>
 
       <div className="flex items-center gap-4 text-xs text-text-faint px-1">
         <span className="flex items-center gap-1.5">

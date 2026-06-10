@@ -1,6 +1,10 @@
+'use client'
+
 import Link from 'next/link'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { Match, Player } from '@/types'
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar'
+import { CountUp } from '@/components/CountUp'
 
 interface FixtureCardProps {
   match: Match
@@ -40,6 +44,7 @@ function getResults(match: Match, playerA: Player, playerB: Player): [ResultTag 
 }
 
 export function FixtureCard({ match, playerA, playerB, compact = false, onAdminClick }: FixtureCardProps) {
+  const shouldReduceMotion = useReducedMotion()
   const isPlayed   = match.status === 'played'
   const isWalkover = match.status === 'walkover'
   const isPending  = match.status === 'pending'
@@ -50,7 +55,10 @@ export function FixtureCard({ match, playerA, playerB, compact = false, onAdminC
   const avatarSize = compact ? 'sm' as const : 'md' as const
 
   return (
-    <div className={`relative flex flex-col bg-surface border border-border rounded-card ${compact ? 'gap-0' : 'gap-0'} group`}>
+    <motion.div
+      whileHover={{ y: -1, transition: { duration: 0.15 } }}
+      className={`relative flex flex-col bg-surface border border-border rounded-card ${compact ? 'gap-0' : 'gap-0'} group`}
+    >
       <div className={`flex items-center gap-3 ${px}`}>
         {/* Player A */}
         <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -67,12 +75,40 @@ export function FixtureCard({ match, playerA, playerB, compact = false, onAdminC
         {/* Score / vs */}
         <div className="shrink-0 flex flex-col items-center gap-0.5 min-w-14">
           {isPending && (
-            <span className="text-xs font-semibold text-text-faint tracking-widest">vs</span>
+            <div className="flex items-center gap-1.5">
+              {shouldReduceMotion ? (
+                <div className="w-1.5 h-1.5 rounded-full bg-border" />
+              ) : (
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full bg-border"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0 }}
+                />
+              )}
+              <span className="text-xs font-semibold text-text-faint tracking-widest">vs</span>
+              {shouldReduceMotion ? (
+                <div className="w-1.5 h-1.5 rounded-full bg-border" />
+              ) : (
+                <motion.div
+                  className="w-1.5 h-1.5 rounded-full bg-border"
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: 'easeInOut', delay: 0.75 }}
+                />
+              )}
+            </div>
           )}
           {isPlayed && (
-            <span className="text-sm font-bold text-text tabular-nums">
-              {match.score_a} – {match.score_b}
-            </span>
+            <motion.span
+              key={`${match.score_a}-${match.score_b}`}
+              initial={{ scale: 0.7, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              className="text-sm font-bold text-text tabular-nums"
+            >
+              <CountUp key={match.score_a ?? 0} from={0} to={match.score_a ?? 0} duration={600} />
+              {' – '}
+              <CountUp key={`b_${match.score_b ?? 0}`} from={0} to={match.score_b ?? 0} duration={600} />
+            </motion.span>
           )}
           {isWalkover && (
             <>
@@ -124,6 +160,6 @@ export function FixtureCard({ match, playerA, playerB, compact = false, onAdminC
           </Link>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }

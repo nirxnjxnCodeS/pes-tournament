@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import type { Standing } from '@/types'
 import { PlayerAvatar } from '@/components/ui/PlayerAvatar'
 import { FormStrip } from '@/components/ui/FormDot'
@@ -17,6 +17,12 @@ const STREAK_ICONS: Record<'W' | 'D' | 'L', string> = { W: '🔥', D: '〰️', 
 
 export function TableRow({ standing: s, isFirstNonQualified, direction, onClick }: TableRowProps) {
   const { player, position, qualified, tied } = s
+  const shouldReduceMotion = useReducedMotion()
+
+  const qualifiedGlow      = 'inset 0 0 0 1px rgba(240, 165, 0, 0.15)'
+  const qualifiedGlowHover = 'inset 0 0 0 1px rgba(240, 165, 0, 0.25)'
+
+  const isWinStreak = s.streak.type === 'W' && s.streak.count >= 3
 
   return (
     <motion.tr
@@ -25,6 +31,8 @@ export function TableRow({ standing: s, isFirstNonQualified, direction, onClick 
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       onClick={onClick}
+      style={qualified ? { boxShadow: qualifiedGlow } : undefined}
+      whileHover={qualified ? { boxShadow: qualifiedGlowHover, transition: { duration: 0.15 } } : undefined}
       className={[
         'border-b border-border-subtle cursor-pointer transition-colors hover:bg-surface-raised group',
         isFirstNonQualified ? 'border-t-2 border-t-dashed border-t-border' : '',
@@ -90,12 +98,22 @@ export function TableRow({ standing: s, isFirstNonQualified, direction, onClick 
       {/* Streak badge */}
       <td className="py-2.5 pl-1 pr-2 w-14">
         {s.streak.type && s.streak.count >= 2 && (
-          <span className={[
-            'text-[10px] font-semibold whitespace-nowrap',
-            s.streak.type === 'W' ? 'text-win' : s.streak.type === 'L' ? 'text-loss' : 'text-text-muted',
-          ].join(' ')}>
-            {STREAK_ICONS[s.streak.type]} {s.streak.count}{s.streak.type}
-          </span>
+          isWinStreak && !shouldReduceMotion ? (
+            <motion.span
+              className="text-[10px] font-semibold whitespace-nowrap text-win"
+              animate={{ scale: [1, 1.08, 1] }}
+              transition={{ duration: 2, repeat: Infinity, ease: 'easeInOut' }}
+            >
+              {STREAK_ICONS['W']} {s.streak.count}W
+            </motion.span>
+          ) : (
+            <span className={[
+              'text-[10px] font-semibold whitespace-nowrap',
+              s.streak.type === 'W' ? 'text-win' : s.streak.type === 'L' ? 'text-loss' : 'text-text-muted',
+            ].join(' ')}>
+              {STREAK_ICONS[s.streak.type]} {s.streak.count}{s.streak.type}
+            </span>
+          )
         )}
       </td>
 

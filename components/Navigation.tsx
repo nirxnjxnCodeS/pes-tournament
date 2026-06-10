@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState, useEffect } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
 import { useTheme } from 'next-themes'
 
 interface NavItem {
@@ -79,6 +80,7 @@ interface NavigationProps { isAdmin: boolean }
 
 export function Navigation({ isAdmin }: NavigationProps) {
   const pathname = usePathname()
+  const shouldReduceMotion = useReducedMotion()
 
   if (
     pathname.startsWith('/admin') ||
@@ -103,16 +105,29 @@ export function Navigation({ isAdmin }: NavigationProps) {
           {NAV_ITEMS.map(({ href, label, icon }) => {
             const active = isActive(href)
             return (
-              <Link
-                key={href}
-                href={href}
-                className={[
-                  'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors border-l-2',
-                  active ? 'text-accent bg-accent/8 border-accent' : 'text-text-muted hover:text-text hover:bg-surface-raised border-transparent',
-                ].join(' ')}
-              >
-                {icon}{label}
-              </Link>
+              <div key={href} className="relative">
+                {/* Sliding left-border indicator */}
+                {active && !shouldReduceMotion && (
+                  <motion.div
+                    layoutId="sidebar-indicator"
+                    className="absolute left-0 top-1 bottom-1 w-0.75 rounded-r-full bg-accent"
+                    transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                  />
+                )}
+                <Link
+                  href={href}
+                  className={[
+                    'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                    // Static border fallback for reduced motion
+                    shouldReduceMotion ? 'border-l-2' : '',
+                    active
+                      ? `text-accent bg-accent/8 ${shouldReduceMotion ? 'border-accent' : ''}`
+                      : `text-text-muted hover:text-text hover:bg-surface-raised ${shouldReduceMotion ? 'border-transparent' : ''}`,
+                  ].filter(Boolean).join(' ')}
+                >
+                  {icon}{label}
+                </Link>
+              </div>
             )
           })}
         </nav>
@@ -148,11 +163,20 @@ export function Navigation({ isAdmin }: NavigationProps) {
               key={href}
               href={href}
               className={[
-                'flex-1 flex flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors',
+                'flex-1 flex flex-col items-center justify-center gap-1 py-2 text-[10px] font-medium transition-colors relative',
                 active ? 'text-accent' : 'text-text-muted',
               ].join(' ')}
             >
-              {icon}{label}
+              {icon}
+              {label}
+              {/* Sliding underline indicator — item 12 */}
+              {active && !shouldReduceMotion && (
+                <motion.div
+                  layoutId="mobile-underline"
+                  className="absolute bottom-1.5 h-0.5 w-4 rounded-full bg-accent"
+                  transition={{ type: 'spring', stiffness: 500, damping: 35 }}
+                />
+              )}
             </Link>
           )
         })}

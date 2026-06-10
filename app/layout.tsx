@@ -5,6 +5,7 @@ import { isAdminSession } from '@/actions/auth'
 import { Navigation } from '@/components/Navigation'
 import { RealtimeStatusMonitor } from '@/components/RealtimeStatusMonitor'
 import { ThemeProvider } from '@/components/ThemeProvider'
+import { PageTransition } from '@/components/PageTransition'
 
 const geistSans = Geist({ variable: '--font-geist-sans', subsets: ['latin'] })
 const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin'] })
@@ -32,7 +33,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             <Navigation isAdmin={isAdmin} />
             {/* pt-12 accommodates mobile top header; pb-20 for mobile bottom nav */}
             <main className="flex-1 min-w-0 pt-12 md:pt-0 pb-20 md:pb-0">
-              {children}
+              <PageTransition>{children}</PageTransition>
             </main>
           </div>
           <RealtimeStatusMonitor />
